@@ -13,3 +13,133 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PostStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum KeyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
+
+model User {
+  id String @id @default(uuid())
+  username String @unique 
+  email String @unique
+  password String
+  fullName String?
+  profileImage String?
+  role UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts Post[]
+  categories Category[]
+  postReviews PostReview[]
+  comments Comment[]
+
+  @@map("users")
+}
+
+model ApiKey {
+  id String @id @default(uuid())
+  key String @unique
+  createdBy String
+  endedAt DateTime 
+  status KeyStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("api_keys")
+}
+
+model Post {
+  id String @id @default(uuid())
+  title String 
+  description String?
+  createdBy String
+  status PostStatus @default(PENDING)
+  postedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  categories Category[]
+  postReview PostReview[]
+  comments Comment[]
+  author User @relation(fields: [createdBy],references: [id])
+
+  @@map("posts")
+}
+
+model Category {
+  id String @id @default(uuid())
+  categoryName String @unique @map("category_name")
+  parentId String?
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts Post[]
+  user User @relation(fields: [createdBy], references: [id])
+  parent Category? @relation("categoryChildren", fields: [parentId], references: [id])
+  children Category[] @relation("categoryChildren")
+
+  @@map("categories")
+}
+
+model PostReview {
+  id String @id @default(uuid())
+  postId String
+  comment String
+  rating Int?
+  status ReviewStatus @default(PENDING)
+  reviewer String
+
+  author User @relation(fields: [reviewer], references: [id])
+  postData Post @relation(fields: [postId], references: [id])
+
+  @@unique([reviewer,postId])
+
+  @@map("post_reviews")
+}
+
+model Comment {
+  id String @id @default(uuid())
+  message String
+  createdBy String
+  postId String
+  parentId String?
+  editedAt DateTime?
+  status CommentStatus @default(PENDING)
+  likeCount Int @default(0) @map("like_count")
+  isDeleted Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [createdBy], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+  parent Comment? @relation("CommentChildren", fields: [parentId], references: [id])
+  children Comment[] @relation("CommentChildren")
+
+  @@map("comments")
+}

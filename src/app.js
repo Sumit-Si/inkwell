@@ -17,11 +17,11 @@ app.use(express.urlencoded({ extended: true, limit: "17kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-
 // custom routes
 import healthCheckRouter from "./routes/healthCheck.routes.js";
-
+import authCheckRouter from "./routes/auth.routes.js";
 
 app.use("/api/v1/healthCheck", healthCheckRouter);
+app.use("/api/v1/users", authCheckRouter);
 
 export default app;
