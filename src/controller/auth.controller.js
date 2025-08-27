@@ -3,7 +3,10 @@ import { db } from "../db/index.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { hashPassword, isPasswordCorrect } from "../utils/hash.js";
-import { generateAccessAndRefreshToken, generateKey } from "../utils/tokenGeneration.js";
+import {
+  generateAccessAndRefreshToken,
+  generateKey,
+} from "../utils/tokenGeneration.js";
 
 const register = asyncHandler(async (req, res) => {
   const { username, email, password, fullName, role } = req.body;
@@ -79,68 +82,101 @@ const login = asyncHandler(async (req, res) => {
     sameSite: "strict",
   };
 
-  const {accessToken,refreshToken} = await generateAccessAndRefreshToken(user);
-  console.log(accessToken,refreshToken,"access and refresh");
+  const { accessToken, refreshToken } =
+    await generateAccessAndRefreshToken(user);
+  console.log(accessToken, refreshToken, "access and refresh");
 
   res
     .status(200)
-    .cookie("accessToken",accessToken,{...cookieOptions, maxAge: 1000 * 60 * 60 * 24})
-    .cookie("refreshToken",refreshToken,{...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 10})
-    .json(new ApiResponse(
-        200,
-        {
-            username: user?.username,
-            email: user?.email,
-            fullName: user?.fullName,
-            role: user?.role,
-            profileImage: user?.profileImage,
-        },
-    ))
+    .cookie("accessToken", accessToken, {
+      ...cookieOptions,
+      maxAge: 1000 * 60 * 60 * 24,
+    })
+    .cookie("refreshToken", refreshToken, {
+      ...cookieOptions,
+      maxAge: 1000 * 60 * 60 * 24 * 10,
+    })
+    .json(
+      new ApiResponse(200, {
+        username: user?.username,
+        email: user?.email,
+        fullName: user?.fullName,
+        role: user?.role,
+        profileImage: user?.profileImage,
+      }),
+    );
 });
 
 const generateApiKey = asyncHandler(async (req, res) => {
-    const userId = req.user?.id;
-    const {endedAt} = req.body;
+  const userId = req.user?.id;
+  const { endedAt } = req.body;
 
-    const key = generateKey();
-    console.log(key,"key");
+  const existingKey = await db.apiKey.findFirst({
+    where: {
+      createdBy: userId,
+      status: "ACTIVE",
+    },
+  });
 
-    const apiKey = await db.apiKey.create({
-        data: {
-            key,
-            createdBy: userId,
-            endedAt: endedAt ? new Date(endedAt) : null,
-        }
-    })
+  if (existingKey) {
+    throw new ApiError(400, "Active Key already exists");
+  }
 
-    const createdApiKey = await db.apiKey.findFirst({
-        where: {
-            id: apiKey?.id,
-        },
+  const key = generateKey();
+  console.log(key, "key");
+
+  const apiKeyCreate = await db.apiKey.create({
+    data: {
+      key,
+      createdBy: userId,
+      endedAt: endedAt ? new Date(endedAt) : null,
+    },
+  });
+
+  const createdApiKey = await db.apiKey.findFirst({
+    where: {
+      id: apiKeyCreate?.id,
+    },
+    select: {
+      key: true,
+      createdBy: true,
+      user: {
         select: {
-            key: true,
-            createdBy: true,
-            user: {
-                username: true,
-                fullName: true,
-            }
-        }
-    });
+          username: true,
+          fullName: true,
+        },
+      },
+    },
+  });
 
-    if(!createdApiKey) {
-        throw new ApiError(500, "Problem while creating api key");
-    }
+  if (!createdApiKey) {
+    throw new ApiError(500, "Problem while creating api key");
+  }
 
-    res
-        .status(201)
-        .json(new ApiResponse(
-            201,
-            createdApiKey,
-            "Api key created successfully",
-        ))
-    
+  res
+    .status(201)
+    .json(new ApiResponse(201, createdApiKey, "Api key created successfully"));
 });
 
-const profile = asyncHandler(async (req, res) => {});
+const profile = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+
+  const user = await db.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      username: true,
+      email: true,
+      fullName: true,
+      role: true,
+      profileImage: true,
+    },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "Profile fetched successfully"));
+});
 
 export { register, login, generateApiKey, profile };
