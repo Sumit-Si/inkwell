@@ -10,7 +10,7 @@ import {
   registerPostRequestValidator,
 } from "../validators/index.js";
 import { validate } from "../middlewares/validate.middleware.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { checkApiKey, verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 

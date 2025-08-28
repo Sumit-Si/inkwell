@@ -22,7 +22,7 @@ enum UserRole {
 enum PostStatus {
   PENDING
   APPROVED
-  REJECTED
+  PUBLISHED
 }
 
 enum CommentStatus {
@@ -38,8 +38,8 @@ enum KeyStatus {
 
 enum ReviewStatus {
   PENDING
-  PUBLISHED
-  HIDDEN
+  APPROVED
+  REJECTED
 }
 
 model User {
@@ -81,6 +81,8 @@ model Post {
   id          String     @id @default(uuid())
   title       String
   description String?
+  slug        String?
+  bannerImage Json?
   createdBy   String
   status      PostStatus @default(PENDING)
   postedAt    DateTime   @default(now())

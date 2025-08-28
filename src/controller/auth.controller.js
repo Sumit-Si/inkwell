@@ -118,8 +118,26 @@ const generateApiKey = asyncHandler(async (req, res) => {
     },
   });
 
-  if (existingKey) {
+  if (existingKey && (!existingKey.endedAt || new Date(existingKey.endedAt) > new Date())) {
     throw new ApiError(400, "Active Key already exists");
+  }
+
+  if (new Date(existingKey?.endedAt) < new Date()) {
+    try {
+      await db.apiKey.update({
+        where: {
+          id: existingKey?.id,
+        },
+        data: {
+          status: "INACTIVE",
+        },
+      });
+    } catch (error) {
+      throw new ApiError(
+        500,
+        error?.message || "Problem while deactivating apiKey",
+      );
+    }
   }
 
   const key = generateKey();
@@ -133,7 +151,7 @@ const generateApiKey = asyncHandler(async (req, res) => {
     },
   });
 
-  const createdApiKey = await db.apiKey.findFirst({
+  const createdApiKey = await db.apiKey.findUnique({
     where: {
       id: apiKeyCreate?.id,
     },

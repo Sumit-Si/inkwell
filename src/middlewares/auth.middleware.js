@@ -41,7 +41,7 @@ const checkApiKey = async (req, res, next) => {
       throw new ApiError(401, "Unauthorized - missing api key");
     }
 
-    const apiKey = await db.apiKey.findUnique({
+    const apiKey = await db.apiKey.findFirst({
       where: {
         key,
         createdBy: req?.user?.id,
@@ -62,25 +62,25 @@ const checkApiKey = async (req, res, next) => {
   }
 };
 
-const checkAdmin = async (req, res, next) => {
+const checkRole = (role) => async (req, res, next) => {
   try {
     const user = req.user;
 
     if (!user) {
-      throw new ApiError(400, "User not exists");
+      throw new ApiError(401, "Unauthorized");
     }
 
-    if (user.role !== "ADMIN") {
-      throw new ApiError(403, "Admin access only");
+    if (!role?.includes(user.role)) {
+      throw new ApiError(403, `Access denied - ${String(role).toLowerCase()} only`);
     }
 
     next();
   } catch (error) {
     throw new ApiError(
       500,
-      error?.message || "Problem while checking admin role",
+      error?.message || "Problem while checking role",
     );
   }
 };
 
-export { verifyJWT, checkApiKey, checkAdmin };
+export { verifyJWT, checkApiKey, checkRole };

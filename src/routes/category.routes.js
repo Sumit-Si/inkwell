@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   verifyJWT,
-  checkAdmin,
+  checkRole,
   checkApiKey,
 } from "../middlewares/auth.middleware.js";
 import {
@@ -13,7 +13,7 @@ const router = Router();
 
 router
   .route("/")
-  .post(verifyJWT, checkApiKey, checkAdmin, addCategory)
+  .post(verifyJWT, checkApiKey, checkRole("ADMIN"), addCategory)
   .get(verifyJWT, checkApiKey, getCategories);
 
 export default router;
