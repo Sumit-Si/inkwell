@@ -22,10 +22,12 @@ import healthCheckRouter from "./routes/healthCheck.routes.js";
 import authCheckRouter from "./routes/auth.routes.js";
 import categoryRouter from "./routes/category.routes.js";
 import postRouter from "./routes/post.routes.js";
+import postReviewRouter from "./routes/postReview.routes.js";
 
 app.use("/api/v1/healthCheck", healthCheckRouter);
 app.use("/api/v1/users", authCheckRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/posts", postRouter);
+app.use("/api/v1/admin/posts", postReviewRouter);
 
 export default app;

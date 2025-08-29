@@ -19,7 +19,7 @@ const createPost = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Post already exists");
   }
 
-  const {slug} = getSlug(title);
+  const { slug } = getSlug(title);
   console.log(slug, "slug");
 
   const post = await db.post.create({
@@ -91,49 +91,45 @@ const getPosts = asyncHandler(async (req, res) => {
 });
 
 const getPublishedPostById = asyncHandler(async (req, res) => {
-  const {id} = req.params;
+  const { id } = req.params;
 
   const post = await prisma.post.findFirst({
     where: {
       id,
       status: "PUBLISHED",
-    }
+    },
   });
 
-  if(!post) {
+  if (!post) {
     throw new ApiError(404, "Published post not exists");
   }
 
   res
     .status(200)
-    .json(new ApiResponse(
-      200,
-      post,
-      "Public post fetched successfully",
-    ))
+    .json(new ApiResponse(200, post, "Public post fetched successfully"));
 });
 
 const updatePostById = asyncHandler(async (req, res) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const userId = req.user?.id;
 
   const post = await db.post.findFirst({
     where: {
       id,
-      createdBy:userId,
-    }
-  })
+      createdBy: userId,
+    },
+  });
 
-  if(!post) {
+  if (!post) {
     throw new ApiError(404, "Post not exists");
   }
 
-  if(post?.status === "APPROVED") {
+  if (post?.status === "APPROVED") {
     throw new ApiError(403, "Post is approved and cannot be updated");
   }
 
-  const {title,description,postedAt} = req.body;
-  const {slug} = getSlug(title);
+  const { title, description, postedAt } = req.body;
+  const { slug } = getSlug(title);
 
   const updatePost = await db.post.update({
     where: {
@@ -144,52 +140,42 @@ const updatePostById = asyncHandler(async (req, res) => {
       description,
       postedAt,
       slug,
-    }
-  })
+    },
+  });
 
-  if(!updatePost) {
+  if (!updatePost) {
     throw new ApiError(500, "Problem while updating post");
   }
 
   res
     .status(200)
-    .json(new ApiResponse(
-      200,
-      updatePost,
-      "Post updated successfully",
-    ))
-
-  
+    .json(new ApiResponse(200, updatePost, "Post updated successfully"));
 });
 
 const deletePostById = asyncHandler(async (req, res) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const userId = req.user?.id;
 
   const post = await db.post.findFirst({
     where: {
       id,
       createdBy: userId,
-    }
-  })
+    },
+  });
 
-  if(!post) {
+  if (!post) {
     throw new ApiError(404, "Post not exists");
   }
 
   const deletePost = await db.post.delete({
     where: {
       id,
-    }
-  })
+    },
+  });
 
   res
     .status(200)
-    .json(new ApiResponse(
-      200,
-      deletePost,
-      "Post deleted successfully",
-    ))
+    .json(new ApiResponse(200, deletePost, "Post deleted successfully"));
 });
 
 export {
