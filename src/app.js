@@ -1,8 +1,11 @@
 import cookieParser from "cookie-parser";
 import express from "express";
 import cors from "cors";
+import { limiter } from "./config/rateLimiter.js";
 
 const app = express();
+// very important for production/proxy
+// app.set('trust proxy', 1);
 
 //middleware
 app.use(
@@ -16,6 +19,7 @@ app.use(express.json({ limit: "17kb" }));
 app.use(express.urlencoded({ extended: true, limit: "17kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
+app.use(limiter);
 
 // custom routes
 import healthCheckRouter from "./routes/healthCheck.routes.js";

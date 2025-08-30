@@ -28,4 +28,10 @@ router.route("/api-key").post(verifyJWT, generateApiKey);
 // profile route - [Protected]
 router.route("/me").get(verifyJWT, profile);
 
+
+// TODO: comment route
+router
+  .route("/:userId/comments")
+  .get(verifyJWT,checkApiKey, getCommentsByUserId);
+
 export default router;

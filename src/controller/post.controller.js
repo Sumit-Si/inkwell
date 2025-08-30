@@ -64,6 +64,9 @@ const createPost = asyncHandler(async (req, res) => {
 
 const getPosts = asyncHandler(async (req, res) => {
   const posts = await db.post.findMany({
+    where: {
+      status: "APPROVED",
+    },
     include: {
       author: {
         select: {
@@ -178,10 +181,36 @@ const deletePostById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, deletePost, "Post deleted successfully"));
 });
 
+// comments controller
+const createComment = asyncHandler(async (req,res) => {
+
+})
+
+const getComments = asyncHandler(async (req,res) => {
+  const comments = await db.comment.findMany();
+})
+
+const getCommentById = asyncHandler(async (req,res) => {
+
+})
+
+const updateCommentById = asyncHandler(async (req,res) => {
+
+})
+
+const deleteCommentById = asyncHandler(async (req,res) => {
+
+})
+
 export {
   createPost,
   getPosts,
   getPublishedPostById,
   updatePostById,
   deletePostById,
+  createComment,
+  getComments,
+  getCommentById,
+  updateCommentById,
+  deleteCommentById,
 };
