@@ -17,6 +17,7 @@ import {
   updatePostById,
 } from "../controller/post.controller.js";
 import {
+  createCommentValidator,
   createPostValidator,
   updatePostValidator,
 } from "../validators/index.js";
@@ -42,15 +43,15 @@ router
   )
   .delete(verifyJWT, checkRole("USER"), checkApiKey, deletePostById);
 
-// comment routes
 
+// comment routes
 router
   .route("/:postId/comments")
   .get(getComments)
-  .post(verifyJWT, checkApiKey, createComment); // secured route
+  .post(verifyJWT, checkApiKey, createCommentValidator(),validate,createComment); // secured route
 
 router
-  .route("/postId/comments/:id")
+  .route("/:postId/comments/:id")
   .get(getCommentById)
   .put(verifyJWT, checkApiKey, updateCommentById)
   .delete(verifyJWT, checkApiKey, deleteCommentById);

@@ -59,15 +59,39 @@ const addCategory = asyncHandler(async (req, res) => {
 });
 
 const getCategories = asyncHandler(async (req, res) => {
-  const categories = await db.category.findMany();
+  let { limit = 10, page = 1 } = req.query;
 
-  if (!categories && categories.length === 0) {
+  if (page <= 0) page = 1;
+  if (limit <= 0 || limit >= 50) {
+    limit = 10;
+  }
+
+  const skip = (page - 1) * limit;
+
+  const categories = await db.category.findMany({
+    take: parseInt(limit),
+    skip: parseInt(skip),
+  });
+
+  if (!categories || categories?.length === 0) {
     throw new ApiError(400, "Categories not exist");
   }
 
+  const totalCategories = await db.category.count();
+  const totalPages = Math.ceil(totalCategories / limit);
+
   res
     .status(200)
-    .json(new ApiResponse(200, categories, "Categories fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        {
+          categories,
+          metadata: { totalPages, currentPage: page, currentLimit: limit },
+        },
+        "Categories fetched successfully",
+      ),
+    );
 });
 
 export { addCategory, getCategories };

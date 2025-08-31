@@ -7,7 +7,7 @@ const verifyJWT = async (req, res, next) => {
     const { accessToken } = req.cookies;
 
     if (!accessToken) {
-      throw new ApiError(400, "Unauthorized!");
+      throw new ApiError(400, "Unauthenticated!");
     }
 
     const decodedToken = jwt.verify(
@@ -22,7 +22,7 @@ const verifyJWT = async (req, res, next) => {
     });
 
     if (!user) {
-      throw new ApiError(401, "Unauthorized");
+      throw new ApiError(401, "Unauthenticated");
     }
 
     req.user = user;

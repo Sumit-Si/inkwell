@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   generateApiKey,
+  getCommentsByUserId,
   login,
   profile,
   register,

@@ -1,5 +1,6 @@
 import { body } from "express-validator";
 
+// auth validations
 const registerPostRequestValidator = () => {
   return [];
 };
@@ -8,6 +9,7 @@ const loginPostRequestValidator = () => {
   return [];
 };
 
+// post validations
 const createPostValidator = () => {
   return [
     body("title")
@@ -62,6 +64,37 @@ const updatePostValidator = () => {
   ];
 };
 
+// comment validations
+const createCommentValidator = () => {
+  return [
+    body("message")
+      .notEmpty()
+      .withMessage("Message is required")
+      .isString()
+      .withMessage("Message must be a string")
+      .isLength({min: 3,})
+      .withMessage("Message must be at least 3 characters")
+      .isLowercase()
+      .withMessage("Message must be in lowercase")
+      .trim(),
+  ];
+};
+const updateCommentValidator = () => {
+  return [
+    body("message")
+      .notEmpty()
+      .withMessage("Message is required")
+      .isString()
+      .withMessage("Message must be a string")
+      .isLength({min: 3,})
+      .withMessage("Message must be at least 3 characters")
+      .isLowercase()
+      .withMessage("Message must be in lowercase")
+      .trim(),
+  ];
+};
+
+// postReview validations
 const approvePostValidator = () => {
   return [
     body("rating")
@@ -106,6 +139,8 @@ export {
   loginPostRequestValidator,
   createPostValidator,
   updatePostValidator,
+  createCommentValidator,
+  updateCommentValidator,
   approvePostValidator,
   rejectPostValidator,
 };

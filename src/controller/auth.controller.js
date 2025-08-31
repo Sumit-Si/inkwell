@@ -118,7 +118,10 @@ const generateApiKey = asyncHandler(async (req, res) => {
     },
   });
 
-  if (existingKey && (!existingKey.endedAt || new Date(existingKey.endedAt) > new Date())) {
+  if (
+    existingKey &&
+    (!existingKey.endedAt || new Date(existingKey.endedAt) > new Date())
+  ) {
     throw new ApiError(400, "Active Key already exists");
   }
 
@@ -197,4 +200,6 @@ const profile = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Profile fetched successfully"));
 });
 
-export { register, login, generateApiKey, profile };
+const getCommentsByUserId = asyncHandler(async (req, res) => {});
+
+export { register, login, generateApiKey, profile, getCommentsByUserId };

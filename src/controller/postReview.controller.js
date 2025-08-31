@@ -4,10 +4,21 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getPendingPosts = asyncHandler(async (req, res) => {
+  let { limit = 10, page = 1 } = req.query;
+
+  if (page <= 0) page = 1;
+  if (limit <= 0 || limit >= 50) {
+    limit = 10;
+  }
+
+  const skip = (page - 1) * limit;
+
   const posts = await db.post.findMany({
     where: {
       status: "PENDING",
     },
+    skip: parseInt(skip),
+    take: parseInt(limit),
     include: {
       author: {
         select: {
@@ -32,13 +43,29 @@ const getPendingPosts = asyncHandler(async (req, res) => {
     },
   });
 
-  if (!posts && posts?.length === 0) {
+  if (!posts || posts?.length === 0) {
     throw new ApiError("404", "Pending Posts not exist");
   }
 
+  const totalPosts = await db.post.count({
+    where: {
+      status: "PENDING",
+    },
+  });
+  const totalPages = Math.ceil(totalPosts / limit);
+
   res
     .status(200)
-    .json(new ApiResponse(200, posts, "Pending Posts fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        {
+          posts,
+          metadata: { totalPages, currentPage: page, currentLimit: limit },
+        },
+        "Pending Posts fetched successfully",
+      ),
+    );
 });
 
 const approvePost = asyncHandler(async (req, res) => {
