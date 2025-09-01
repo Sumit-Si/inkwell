@@ -7,6 +7,11 @@ import {
   generateAccessAndRefreshToken,
   generateKey,
 } from "../utils/tokenGeneration.js";
+import {
+  cleanupTempFile,
+  handleFileDeletion,
+  handleFileUpload,
+} from "../utils/fileUpload.js";
 
 const register = asyncHandler(async (req, res) => {
   const { username, email, password, fullName, role } = req.body;
@@ -18,42 +23,56 @@ const register = asyncHandler(async (req, res) => {
   });
 
   if (existingUser) {
-    throw new ApiError(400, "User not exists");
+    throw new ApiError(400, "User already exists");
   }
 
   const hashedPassword = await hashPassword(password);
 
-  const user = await db.user.create({
-    data: {
-      username,
-      email,
-      fullName,
-      password: hashedPassword,
-      //   profileImage: "",
-      role,
-    },
-  });
+  let uploadResult;
+  const filePath = req.file?.path;
+  try {
+    if(filePath) uploadResult = await handleFileUpload(filePath, "userProfile");
+    console.log(uploadResult, "uploadResult");
+    
 
-  const checkedUser = await db.user.findUnique({
-    where: {
-      id: user?.id,
-    },
-    select: {
-      username: true,
-      email: true,
-      fullName: true,
-      role: true,
-      profileImage: true,
-    },
-  });
+    const user = await db.user.create({
+      data: {
+        username,
+        email,
+        fullName,
+        password: hashedPassword,
+        profileImage: uploadResult ? uploadResult?.url : null,
+        role,
+      },
+    });
 
-  if (!checkedUser) {
-    throw new ApiError(500, "Problem while creating user");
+    const checkedUser = await db.user.findUnique({
+      where: {
+        id: user?.id,
+      },
+      select: {
+        username: true,
+        email: true,
+        fullName: true,
+        role: true,
+        profileImage: true,
+      },
+    });
+
+    if (!checkedUser) {
+      throw new ApiError(500, "Problem while creating user");
+    }
+
+    res
+      .status(201)
+      .json(new ApiResponse(201, checkedUser, "User created successfully"));
+  } catch (error) {
+    if(uploadResult) {
+      handleFileDeletion(uploadResult?.publicId);
+      cleanupTempFile(filePath);
+    }
+    throw new ApiError(500, error?.message || "Problem while creating user");
   }
-
-  res
-    .status(201)
-    .json(new ApiResponse(201, checkedUser, "User created successfully"));
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -200,6 +219,64 @@ const profile = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Profile fetched successfully"));
 });
 
-const getCommentsByUserId = asyncHandler(async (req, res) => {});
+const getCommentsByUserId = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  let { limit = 10, page = 1 } = req.query;
+
+  if (page <= 0) page = 1;
+  if (limit <= 0 || limit >= 50) {
+    limit = 10;
+  }
+
+  const skip = (page - 1) * limit;
+
+  const comments = await db.comment.findMany({
+    where: {
+      createdBy: userId,
+    },
+    take: parseInt(limit),
+    skip: parseInt(skip),
+    select: {
+      message: true,
+      postId: true,
+      createdBy: true,
+      likeCount: true,
+      post: {
+        select: {
+          title: true,
+          postedAt: true,
+        },
+      },
+      user: {
+        select: {
+          fullName: true,
+        },
+      },
+    },
+  });
+
+  const totalComments = await db.comment.count({
+    where: {
+      createdBy: userId,
+    },
+  });
+
+  if (!comments || comments?.length === 0) {
+    throw new ApiError(404, "Comments not exist");
+  }
+
+  const totalPages = Math.ceil(totalComments / limit);
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        comments,
+        metadata: { totalPages, currentPage: page, currentLimit: limit },
+      },
+      "Comments fetched successfully",
+    ),
+  );
+});
 
 export { register, login, generateApiKey, profile, getCommentsByUserId };
