@@ -2,6 +2,7 @@ import { db } from "../db/index.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { handleFileUpload } from "../utils/fileUpload.js";
 import { getSlug } from "../utils/slug.js";
 
 const createPost = asyncHandler(async (req, res) => {
@@ -20,46 +21,58 @@ const createPost = asyncHandler(async (req, res) => {
   }
 
   const { slug } = getSlug(title);
-  console.log(slug, "slug");
 
-  const post = await db.post.create({
-    data: {
-      title,
-      description,
-      slug,
-      createdBy: userId,
-      postedAt,
-    },
-  });
+  let uploadResult;
+  const filePath = req.file?.path;
+  try {
+    if (filePath) uploadResult = await handleFileUpload(filePath, "post");
 
-  const createdPost = await db.post.findUnique({
-    where: {
-      id: post?.id,
-    },
-    include: {
-      author: {
-        select: {
-          username: true,
-          fullName: true,
+    const post = await db.post.create({
+      data: {
+        title,
+        description,
+        bannerImage: uploadResult ? uploadResult?.url : null,
+        slug,
+        createdBy: userId,
+        postedAt,
+      },
+    });
+
+    const createdPost = await db.post.findUnique({
+      where: {
+        id: post?.id,
+      },
+      include: {
+        author: {
+          select: {
+            username: true,
+            fullName: true,
+          },
+        },
+        comments: {
+          select: {
+            message: true,
+            likeCount: true,
+            createdBy: true,
+          },
         },
       },
-      comments: {
-        select: {
-          message: true,
-          likeCount: true,
-          createdBy: true,
-        },
-      },
-    },
-  });
+    });
 
-  if (!createdPost) {
-    throw new ApiError(500, "Problem while creating post");
+    if (!createdPost) {
+      throw new ApiError(500, "Problem while creating post");
+    }
+
+    res
+      .status(201)
+      .json(new ApiResponse(201, createdPost, "Post created successfully"));
+  } catch (error) {
+    if (uploadResult) {
+          handleFileDeletion(uploadResult?.publicId);
+          cleanupTempFile(filePath);
+        }
+        throw new ApiError(500, error?.message || "Problem while creating post");
   }
-
-  res
-    .status(201)
-    .json(new ApiResponse(201, createdPost, "Post created successfully"));
 });
 
 const getPosts = asyncHandler(async (req, res) => {
@@ -101,22 +114,20 @@ const getPosts = asyncHandler(async (req, res) => {
   const totalPosts = await db.post.count({
     where: {
       status: "APPROVED",
-    }
+    },
   });
   const totalPages = Math.ceil(totalPosts / limit);
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          posts,
-          metadata: { totalPages, currentPage: page, currentLimit: limit },
-        },
-        "Posts fetched successfully",
-      ),
-    );
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        posts,
+        metadata: { totalPages, currentPage: page, currentLimit: limit },
+      },
+      "Posts fetched successfully",
+    ),
+  );
 });
 
 const getPublishedPostById = asyncHandler(async (req, res) => {

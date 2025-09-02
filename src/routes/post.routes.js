@@ -22,12 +22,30 @@ import {
   updatePostValidator,
 } from "../validators/index.js";
 import { validate } from "../middlewares/validate.middleware.js";
+import { uploadPostImage } from "../middlewares/multer.middleware.js";
+import { handleFileUploadError, validateUploadedFile } from "../middlewares/fileUpload.middleware.js";
 
 const router = Router();
 
 router
   .route("/")
-  .post(verifyJWT, checkApiKey, createPostValidator(), validate, createPost)
+  .post(
+    verifyJWT,
+    checkApiKey,
+    uploadPostImage.single("bannerImage"),
+    (req, res, next) => {
+      if (req.file) validateUploadedFile;
+      next();
+    },
+    (req, res, next) => {
+      if (req.file) handleFileUploadError;
+      next();
+    },
+    createPostValidator(),
+    validate,
+    
+    createPost,
+  )
   .get(getPosts); // public
 
 router
@@ -43,12 +61,17 @@ router
   )
   .delete(verifyJWT, checkRole("USER"), checkApiKey, deletePostById);
 
-
 // comment routes
 router
   .route("/:postId/comments")
   .get(getComments)
-  .post(verifyJWT, checkApiKey, createCommentValidator(),validate,createComment); // secured route
+  .post(
+    verifyJWT,
+    checkApiKey,
+    createCommentValidator(),
+    validate,
+    createComment,
+  ); // secured route
 
 router
   .route("/:postId/comments/:id")

@@ -12,7 +12,7 @@ import {
 } from "../validators/index.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import { checkApiKey, verifyJWT } from "../middlewares/auth.middleware.js";
-import { uploadPostImage } from "../middlewares/multer.middleware.js";
+import { uploadUserProfile } from "../middlewares/multer.middleware.js";
 import {
   handleFileUploadError,
   validateUploadedFile,
@@ -26,7 +26,7 @@ router
   .post(
     registerPostRequestValidator(),
     validate,
-    uploadPostImage.single("profileImage"),
+    uploadUserProfile.single("profileImage"),
     (req,res,next) => {if(req.file) validateUploadedFile
       next();
     },

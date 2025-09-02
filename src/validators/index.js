@@ -2,11 +2,63 @@ import { body } from "express-validator";
 
 // auth validations
 const registerPostRequestValidator = () => {
-  return [];
+  return [
+    body("username")
+      .trim()
+      .notEmpty()
+      .withMessage("Username is required")
+      .isLength({ min: 3 })
+      .withMessage("Username must be at least 3 characters"),
+
+    body("fullName")
+      .optional({ nullable: false })
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("FullName must be at least 5 characters"),
+
+    body("email")
+      .notEmpty()
+      .withMessage("Email is required")
+      .isEmail()
+      .withMessage("Invalid email id")
+      .trim(),
+
+    body("password")
+      .trim()
+      .notEmpty()
+      .withMessage("Password is required")
+      .isLength({ min: 8, max: 20 })
+      .withMessage("Password must be 8-20 characters")
+      .matches(/[A-Z]/)
+      .withMessage("Password must contain at least one uppercase letter")
+      .matches(/[0-9]/)
+      .withMessage("Password must contain at least one number")
+      .matches(/[@$!%*?&#]/)
+      .withMessage("Password must contain at least one special character"),
+
+    body("role")
+      .isIn(["USER", "ADMIN"])
+      .withMessage("Role either be user or admin")
+      .trim(),
+  ];
 };
 
 const loginPostRequestValidator = () => {
-  return [];
+  return [
+    body("email")
+      .notEmpty()
+      .withMessage("Email is required")
+      .isEmail()
+      .withMessage("Invalid email id")
+      .trim(),
+
+    body("password")
+      .trim()
+      .notEmpty()
+      .withMessage("Password is required")
+      .isLength({ min: 8,})
+      .withMessage("Password must be at least 8 characters"),
+  ];
 };
 
 // post validations
@@ -72,7 +124,7 @@ const createCommentValidator = () => {
       .withMessage("Message is required")
       .isString()
       .withMessage("Message must be a string")
-      .isLength({min: 3,})
+      .isLength({ min: 3 })
       .withMessage("Message must be at least 3 characters")
       .isLowercase()
       .withMessage("Message must be in lowercase")
@@ -86,7 +138,7 @@ const updateCommentValidator = () => {
       .withMessage("Message is required")
       .isString()
       .withMessage("Message must be a string")
-      .isLength({min: 3,})
+      .isLength({ min: 3 })
       .withMessage("Message must be at least 3 characters")
       .isLowercase()
       .withMessage("Message must be in lowercase")

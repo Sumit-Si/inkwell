@@ -31,9 +31,8 @@ const register = asyncHandler(async (req, res) => {
   let uploadResult;
   const filePath = req.file?.path;
   try {
-    if(filePath) uploadResult = await handleFileUpload(filePath, "userProfile");
-    console.log(uploadResult, "uploadResult");
-    
+    if (filePath)
+      uploadResult = await handleFileUpload(filePath, "userProfile");
 
     const user = await db.user.create({
       data: {
@@ -67,7 +66,7 @@ const register = asyncHandler(async (req, res) => {
       .status(201)
       .json(new ApiResponse(201, checkedUser, "User created successfully"));
   } catch (error) {
-    if(uploadResult) {
+    if (uploadResult) {
       handleFileDeletion(uploadResult?.publicId);
       cleanupTempFile(filePath);
     }
