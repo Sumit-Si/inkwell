@@ -150,7 +150,7 @@ public/
 
 ```json
 {
-  "username": "johndoe" || "email" : "johndoe@gmail.com",
+  "username": "johndoe" OR "email" : "johndoe@gmail.com",
   "password": "securepassword123"
 }
 ```
