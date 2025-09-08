@@ -606,54 +606,6 @@ npx prisma studio     # Database GUI
 docker-compose up -d   # Start PostgreSQL
 ```
 
-## 🧪 Testing Examples
-
-### cURL Commands
-
-**Register User:**
-
-```bash
-curl -X POST http://localhost:3000/api/v1/users/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","email":"test@example.com","password":"password123","fullName":"Test User"}'
-```
-
-**Login:**
-
-```bash
-curl -X POST http://localhost:3000/api/v1/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"password123"}'
-```
-
-**Create Post (with auth):**
-
-```bash
-curl -X POST http://localhost:3000/api/v1/posts \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <jwt-token>" \
-  -H "X-API-Key: <api-key>" \
-  -d '{"title":"Test Post","description":"Content","categories":["test"]}'
-```
-
-**Upload Banner Image:**
-
-```bash
-curl -X POST http://localhost:3000/api/v1/posts/123/banner \
-  -H "Authorization: Bearer <jwt-token>" \
-  -H "X-API-Key: <api-key>" \
-  -F "bannerImage=@/path/to/image.jpg"
-```
-
-**Update Profile Image:**
-
-```bash
-curl -X PUT http://localhost:3000/api/v1/users/profile-image \
-  -H "Authorization: Bearer <jwt-token>" \
-  -H "X-API-Key: <api-key>" \
-  -F "profileImage=@/path/to/profile.jpg"
-```
-
 ## 📄 License
 
 ISC License
