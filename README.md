@@ -252,29 +252,6 @@ public/
 }
 ```
 
-#### `POST /posts/:id/banner` (Protected)
-
-**Headers:** `Authorization: Bearer <jwt-token>`, `X-API-Key: <api-key>`
-
-**Request:** `multipart/form-data` with `bannerImage` field
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "message": "Banner image uploaded successfully",
-  "data": {
-    "bannerImage": {
-      "url": "https://res.cloudinary.com/...",
-      "publicId": "inkwell/post_1234567890_abc123",
-      "format": "jpg",
-      "size": 1024000
-    }
-  }
-}
-```
-
 #### `GET /posts` (Public)
 
 **Response:**
@@ -320,31 +297,6 @@ public/
       },
       "categories": ["technology"],
       "createdAt": "2024-01-01T00:00:00.000Z"
-    }
-  }
-}
-```
-
-### 👤 User Profile Endpoints
-
-#### `PUT /users/profile-image` (Protected)
-
-**Headers:** `Authorization: Bearer <jwt-token>`, `X-API-Key: <api-key>`
-
-**Request:** `multipart/form-data` with `profileImage` field
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "message": "Profile image updated successfully",
-  "data": {
-    "profileImage": {
-      "url": "https://res.cloudinary.com/...",
-      "publicId": "inkwell/userProfile_1234567890_abc123",
-      "format": "png",
-      "size": 512000
     }
   }
 }
