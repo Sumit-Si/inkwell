@@ -24,8 +24,6 @@ const router = Router();
 router
   .route("/register")
   .post(
-    registerPostRequestValidator(),
-    validate,
     uploadUserProfile.single("profileImage"),
     (req,res,next) => {if(req.file) validateUploadedFile
       next();
@@ -33,6 +31,8 @@ router
     (req,res,next) => {if(req.file) handleFileUploadError
       next();
     },
+    registerPostRequestValidator(),
+    validate,
     register,
   );
 

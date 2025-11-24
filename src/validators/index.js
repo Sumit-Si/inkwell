@@ -7,20 +7,26 @@ const registerPostRequestValidator = () => {
       .trim()
       .notEmpty()
       .withMessage("Username is required")
-      .isLength({ min: 3 })
-      .withMessage("Username must be at least 3 characters"),
+      .isLength({ min: 3, max: 50 })
+      .withMessage("Username must be 3-50 characters")
+      .toLowerCase()
+      .withMessage("Username must be in lowercase")
+      .matches(/^[a-zA-Z0-9\._]+$/)
+      .withMessage("Username must contain only letters,dot, underscore and numbers"),
 
     body("fullName")
       .optional({ nullable: false })
       .trim()
-      .isLength({ min: 5 })
-      .withMessage("FullName must be at least 5 characters"),
+      .isLength({ min: 5,max: 150 })
+      .withMessage("FullName must be 5-150 characters"),
 
     body("email")
       .notEmpty()
       .withMessage("Email is required")
       .isEmail()
       .withMessage("Invalid email id")
+      .toLowerCase()
+      .withMessage("Email must be in lowercase")
       .trim(),
 
     body("password")
