@@ -1,6 +1,9 @@
+version: "3.9"
+
 services:
   db:
     image: postgres
+    container_name: inkwell-db
     restart: always
     environment:
       POSTGRES_PASSWORD: postAdminPassword
@@ -11,5 +14,16 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  app: 
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      container_name: inkwell-app
+      restarts: always
+      ports: 
+        - 8000:8000
+      
+      depends_on: 
+        - db
 volumes:
   db_data:
